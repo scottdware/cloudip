@@ -20,7 +20,7 @@ Flags:
 
 ### Installation
 
-The easiest way to run this program is to download the binary for your OS of choice from the (https://github.com/scottdware/cloudip/releases/latest)[Releases] section.
+The easiest way to run this program is to download the binary for your OS of choice from the [Releases](https://github.com/scottdware/cloudip/releases/latest) section.
 
 You can optionally choose to clone this repo and run the script as follows (must have Golang installed):
 
