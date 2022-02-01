@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -114,6 +115,10 @@ var rootCmd = &cobra.Command{
 			for _, iprange := range awsip.Prefixes {
 				fmt.Printf("%s\n", iprange.IPPrefix)
 			}
+
+			for _, iprange6 := range awsip.Ipv6Prefixes {
+				fmt.Printf("%s\n", iprange6.Ipv6Prefix)
+			}
 		case "google":
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
@@ -207,4 +212,12 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func IsIPv4(address string) bool {
+	return strings.Count(address, ":") < 2
+}
+
+func IsIPv6(address string) bool {
+	return strings.Count(address, ":") >= 2
 }
