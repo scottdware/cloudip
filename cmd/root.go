@@ -97,7 +97,16 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "cloudip",
 	Short: "Program to fetch public IP ranges of AWS, Azure and Google",
-	Long:  ``,
+	Long: `Get a list of all public IP address ranges (v4 or v6) for the three major cloud vendors:
+
+Amazon AWS, Microsoft Azure and Google
+
+By default, the ranges are printed to the console/screen. If you would like to save them in a file, the
+output format is CSV, and you can use the "--file" flag to specify a file name.
+
+Example:
+
+	cloudip --vendor aws --iptype 4 --file AWS_IP_Ranges.csv`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client := resty.New()
 
