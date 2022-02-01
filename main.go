@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/scottdware/cloudip/cmd"
+import "./cmd"
 
 func main() {
 	cmd.Execute()
