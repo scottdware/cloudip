@@ -20,6 +20,8 @@ Flags:
 
 ### Installation
 
-Clone this repo and run the script as follows (must have Golang installed):
+The easiest way to run this program is to download the binary for your OS of choice from the (https://github.com/scottdware/cloudip/releases/latest)[Releases] section.
+
+You can optionally choose to clone this repo and run the script as follows (must have Golang installed):
 
 `go run main.go --vendor aws --iptype 4 --file AWS_IP_Ranges.csv`
