@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/scottdware/go-easycsv v0.0.0-20180104194405-695e7e580f43
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	gopkg.in/resty.v1 v1.12.0

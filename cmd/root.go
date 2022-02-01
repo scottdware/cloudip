@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/scottdware/go-easycsv"
 	"github.com/spf13/viper"
 	"gopkg.in/resty.v1"
 )
@@ -79,6 +80,8 @@ type Properties struct {
 var (
 	cfgFile   string
 	vendor    string
+	file      string
+	iptype    int
 	ipsources = map[string]string{
 		"aws":    "https://ip-ranges.amazonaws.com/ip-ranges.json",
 		"google": "https://www.gstatic.com/ipranges/goog.json",
@@ -112,12 +115,39 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("JSON parse error on IP info - %s", err)
 			}
 
-			for _, iprange := range awsip.Prefixes {
-				fmt.Printf("%s\n", iprange.IPPrefix)
-			}
+			if len(file) > 0 {
+				output, err := easycsv.NewCSV(fmt.Sprintf("%s", file))
+				if err != nil {
+					fmt.Printf("unable to create CSV file - %s", err)
+				}
 
-			for _, iprange6 := range awsip.Ipv6Prefixes {
-				fmt.Printf("%s\n", iprange6.Ipv6Prefix)
+				output.Write("Prefix,Region,Service,Network Border Group\n")
+
+				if iptype == 4 {
+					for _, iprange := range awsip.Prefixes {
+						output.Write(fmt.Sprintf("%s,%s,%s,%s\n", iprange.IPPrefix, iprange.Region, iprange.Service, iprange.NetworkBorderGroup))
+					}
+				}
+
+				if iptype == 6 {
+					for _, iprange6 := range awsip.Ipv6Prefixes {
+						output.Write(fmt.Sprintf("%s,%s,%s,%s\n", iprange6.Ipv6Prefix, iprange6.Region, iprange6.Service, iprange6.NetworkBorderGroup))
+					}
+				}
+
+				output.End()
+			} else {
+				if iptype == 4 {
+					for _, iprange := range awsip.Prefixes {
+						fmt.Printf("%s\n", iprange.IPPrefix)
+					}
+				}
+
+				if iptype == 6 {
+					for _, iprange6 := range awsip.Ipv6Prefixes {
+						fmt.Printf("%s\n", iprange6.Ipv6Prefix)
+					}
+				}
 			}
 		case "google":
 			resp, err := client.R().
@@ -132,13 +162,42 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("JSON parse error on IP info - %s", err)
 			}
 
-			for _, iprange := range googleip.Prefixes {
-				if len(iprange.Ipv4Prefix) > 0 && len(iprange.Ipv6Prefix) <= 0 {
-					fmt.Println(iprange.Ipv4Prefix)
+			if len(file) > 0 {
+				output, err := easycsv.NewCSV(fmt.Sprintf("%s", file))
+				if err != nil {
+					fmt.Printf("unable to create CSV file - %s", err)
 				}
 
-				if len(iprange.Ipv4Prefix) <= 0 && len(iprange.Ipv6Prefix) > 0 {
-					fmt.Println(iprange.Ipv6Prefix)
+				output.Write("Prefix\n")
+
+				for _, iprange := range googleip.Prefixes {
+					if iptype == 4 {
+						if len(iprange.Ipv4Prefix) > 0 && len(iprange.Ipv6Prefix) <= 0 {
+							output.Write(fmt.Sprintf("%s\n", iprange.Ipv4Prefix))
+						}
+					}
+
+					if iptype == 6 {
+						if len(iprange.Ipv4Prefix) <= 0 && len(iprange.Ipv6Prefix) > 0 {
+							output.Write(fmt.Sprintf("%s\n", iprange.Ipv6Prefix))
+						}
+					}
+				}
+
+				output.End()
+			} else {
+				for _, iprange := range googleip.Prefixes {
+					if iptype == 4 {
+						if len(iprange.Ipv4Prefix) > 0 && len(iprange.Ipv6Prefix) <= 0 {
+							fmt.Printf("%s\n", iprange.Ipv4Prefix)
+						}
+					}
+
+					if iptype == 6 {
+						if len(iprange.Ipv4Prefix) <= 0 && len(iprange.Ipv6Prefix) > 0 {
+							fmt.Printf("%s\n", iprange.Ipv6Prefix)
+						}
+					}
 				}
 			}
 		case "azure":
@@ -154,9 +213,66 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("JSON parse error on IP info - %s", err)
 			}
 
-			for _, iprange := range azureip.Values {
-				for _, prefixes := range iprange.Properties.AddressPrefixes {
-					fmt.Printf("%s\n", prefixes)
+			if len(file) > 0 {
+				output, err := easycsv.NewCSV(fmt.Sprintf("%s", file))
+				if err != nil {
+					fmt.Printf("unable to create CSV file - %s", err)
+				}
+
+				output.Write("Name,ID,Change Number,Region,Region ID,Platform,System Service,Prefixes,Network Features\n")
+
+				for _, iprange := range azureip.Values {
+					ip4 := []string{}
+					ip6 := []string{}
+
+					for _, prefixes := range iprange.Properties.AddressPrefixes {
+						if iptype == 4 {
+							if IsIPv4(prefixes) {
+								ip4 = append(ip4, prefixes)
+							}
+						}
+
+						if iptype == 6 {
+							if IsIPv6(prefixes) {
+								ip6 = append(ip6, prefixes)
+							}
+						}
+					}
+
+					if iptype == 4 {
+						output.Write(fmt.Sprintf("%s,%s,%d,%s,%d,%s,%s,\"%s\",\"%s\"\n", iprange.Name, iprange.ID, iprange.Properties.ChangeNumber,
+							iprange.Properties.Region, iprange.Properties.RegionID, iprange.Properties.Platform, iprange.Properties.SystemService,
+							sliceToString(ip4), sliceToString(iprange.Properties.NetworkFeatures)))
+					}
+
+					if iptype == 6 {
+						output.Write(fmt.Sprintf("%s,%s,%d,%s,%d,%s,%s,\"%s\",\"%s\"\n", iprange.Name, iprange.ID, iprange.Properties.ChangeNumber,
+							iprange.Properties.Region, iprange.Properties.RegionID, iprange.Properties.Platform, iprange.Properties.SystemService,
+							sliceToString(ip6), sliceToString(iprange.Properties.NetworkFeatures)))
+					}
+				}
+
+				output.End()
+			} else {
+				for _, iprange := range azureip.Values {
+					// ip4 := []string{}
+					// ip6 := []string{}
+
+					for _, prefixes := range iprange.Properties.AddressPrefixes {
+						if iptype == 4 {
+							if IsIPv4(prefixes) {
+								fmt.Printf("%s\n", prefixes)
+								// ip4 = append(ip4, prefixes)
+							}
+						}
+
+						if iptype == 6 {
+							if IsIPv6(prefixes) {
+								fmt.Printf("%s\n", prefixes)
+								// ip6 = append(ip6, prefixes)
+							}
+						}
+					}
 				}
 			}
 		}
@@ -179,13 +295,16 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cloudip.yaml)")
+	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cloudip.yaml)")
 	rootCmd.Flags().StringVarP(&vendor, "vendor", "v", "", "Cloud vendor to export IP's from - aws|azure|google")
+	rootCmd.Flags().IntVarP(&iptype, "iptype", "i", 4, "IP Type to export - 4|6|all")
+	rootCmd.Flags().StringVarP(&file, "file", "f", "", "CSV filename to save the output to")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.MarkFlagRequired("vendor")
+	rootCmd.MarkFlagRequired("iptype")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -220,4 +339,25 @@ func IsIPv4(address string) bool {
 
 func IsIPv6(address string) bool {
 	return strings.Count(address, ":") >= 2
+}
+
+func sliceToString(slice []string) string {
+	var str string
+
+	for _, item := range slice {
+		str += fmt.Sprintf("%s, ", item)
+	}
+
+	return strings.TrimRight(str, ", ")
+}
+
+func stringToSlice(str string) []string {
+	var slice []string
+
+	list := strings.FieldsFunc(str, func(r rune) bool { return strings.ContainsRune(",;", r) })
+	for _, item := range list {
+		slice = append(slice, strings.TrimSpace(item))
+	}
+
+	return slice
 }
