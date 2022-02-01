@@ -94,10 +94,7 @@ var rootCmd = &cobra.Command{
 	Use:   "cloudip",
 	Short: "Program to fetch public IP ranges of AWS, Azure and Google",
 	Long:  ``,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-
 		client := resty.New()
 
 		switch vendor {
