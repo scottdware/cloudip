@@ -99,10 +99,15 @@ var rootCmd = &cobra.Command{
 	Short: "Program to fetch public IP ranges of AWS, Azure and Google",
 	Long: `Get a list of all public IP address ranges (v4 or v6) for the three major cloud vendors:
 
-Amazon AWS, Microsoft Azure and Google
+Amazon AWS (aws), Microsoft Azure (azure) and Google (google)
+
+Flags:
+
+For the --vendor (-v) flag, you must specify one of these options: aws | azure | google
+For the --iptype (-i) flag, you must specify either: 4 or 6
 
 By default, the ranges are printed to the console/screen. If you would like to save them in a file, the
-output format is CSV, and you can use the "--file" flag to specify a file name.
+output format is CSV, and you can use the "--file" (-f) flag to specify a file name.
 
 Example:
 
@@ -306,7 +311,7 @@ func init() {
 
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cloudip.yaml)")
 	rootCmd.Flags().StringVarP(&vendor, "vendor", "v", "", "Cloud vendor to export IP's from - aws|azure|google")
-	rootCmd.Flags().IntVarP(&iptype, "iptype", "i", 4, "IP Type to export - 4|6|all")
+	rootCmd.Flags().IntVarP(&iptype, "iptype", "i", 4, "IP Type to export - 4|6")
 	rootCmd.Flags().StringVarP(&file, "file", "f", "", "CSV filename to save the output to")
 
 	// Cobra also supports local flags, which will only run
