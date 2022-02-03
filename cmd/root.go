@@ -253,6 +253,11 @@ Example:
 						}
 					}
 
+					// Skip this last row, as it contains everything prior
+					if iprange.Name == "AzureCloud" && iprange.ID == "AzureCloud" {
+						continue
+					}
+
 					if iptype == 4 {
 						output.Write(fmt.Sprintf("%s,%s,%d,%s,%d,%s,%s,\"%s\",\"%s\"\n", iprange.Name, iprange.ID, iprange.Properties.ChangeNumber,
 							iprange.Properties.Region, iprange.Properties.RegionID, iprange.Properties.Platform, iprange.Properties.SystemService,
