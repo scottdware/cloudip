@@ -315,8 +315,8 @@ func init() {
 	// will be global for your application.
 
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cloudip.yaml)")
-	rootCmd.Flags().StringVarP(&vendor, "vendor", "v", "", "Cloud vendor to export IP's from - aws|azure|google")
-	rootCmd.Flags().IntVarP(&iptype, "iptype", "i", 4, "IP Type to export - 4|6")
+	rootCmd.Flags().StringVarP(&vendor, "vendor", "v", "", "Cloud vendor to export IP's from - <aws|azure|google>")
+	rootCmd.Flags().IntVarP(&iptype, "iptype", "i", 4, "IP Type to export - <4|6>")
 	rootCmd.Flags().StringVarP(&file, "file", "f", "", "CSV filename to save the output to")
 
 	// Cobra also supports local flags, which will only run
