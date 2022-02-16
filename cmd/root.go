@@ -29,6 +29,11 @@ import (
 	"gopkg.in/resty.v1"
 )
 
+type Vendor struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
 type AWSIPRanges struct {
 	SyncToken    string      `json:"syncToken"`
 	CreateDate   string      `json:"createDate"`
@@ -78,16 +83,17 @@ type Properties struct {
 }
 
 var (
-	cfgFile   string
-	vendor    string
-	file      string
-	iptype    int
-	ipsources = map[string]string{
-		"aws":    "https://ip-ranges.amazonaws.com/ip-ranges.json",
-		"google": "https://www.gstatic.com/ipranges/goog.json",
-		"azure":  "https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20220124.json",
-		// "azure-gov": "https://download.microsoft.com/download/6/4/D/64DB03BF-895B-4173-A8B1-BA4AD5D4DF22/ServiceTags_AzureGovernment_20210124.json",
-	}
+	cfgFile string
+	vendor  string
+	file    string
+	iptype  int
+	sources = "https://cloudip-sources-paova.ondigitalocean.app"
+	// ipsources = map[string]string{
+	//	"aws":    "https://ip-ranges.amazonaws.com/ip-ranges.json",
+	//	"google": "https://www.gstatic.com/ipranges/goog.json",
+	//	"azure":  "https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20220124.json",
+	// }
+	vendors  Vendor
 	awsip    AWSIPRanges
 	googleip GoogleIPRanges
 	azureip  AzureIPRanges
@@ -117,9 +123,23 @@ Example:
 
 		switch vendor {
 		case "aws":
+			// Get the AWS ip-range URL
+			vresp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				Get(fmt.Sprintf("%s/aws", sources))
+
+			if err != nil {
+				fmt.Printf("unable to connect to webservice to retrieve vendor - %s", err)
+			}
+
+			if err := json.Unmarshal([]byte(vresp.String()), &vendors); err != nil {
+				fmt.Printf("JSON parse error on IP info - %s", err)
+			}
+
+			// Get the list of ip-ranges from AWS
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
-				Get(ipsources["aws"])
+				Get(vendors.URL)
 
 			if err != nil {
 				fmt.Printf("unable to connect to AWS - %s", err)
@@ -164,9 +184,23 @@ Example:
 				}
 			}
 		case "google":
+			// Get the Google ip-range URL
+			vresp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				Get(fmt.Sprintf("%s/google", sources))
+
+			if err != nil {
+				fmt.Printf("unable to connect to webservice to retrieve vendor - %s", err)
+			}
+
+			if err := json.Unmarshal([]byte(vresp.String()), &vendors); err != nil {
+				fmt.Printf("JSON parse error on IP info - %s", err)
+			}
+
+			// Get the list of ip-ranges from Google
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
-				Get(ipsources["google"])
+				Get(vendors.URL)
 
 			if err != nil {
 				fmt.Printf("unable to connect to Google - %s", err)
@@ -215,9 +249,23 @@ Example:
 				}
 			}
 		case "azure":
+			// Get the Azure ip-range URL
+			vresp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				Get(fmt.Sprintf("%s/azure", sources))
+
+			if err != nil {
+				fmt.Printf("unable to connect to webservice to retrieve vendor - %s", err)
+			}
+
+			if err := json.Unmarshal([]byte(vresp.String()), &vendors); err != nil {
+				fmt.Printf("JSON parse error on IP info - %s", err)
+			}
+
+			// Get the list of ip-ranges from Azure
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
-				Get(ipsources["azure"])
+				Get(vendors.URL)
 
 			if err != nil {
 				fmt.Printf("unable to connect to Azure - %s", err)
