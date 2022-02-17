@@ -83,16 +83,11 @@ type Properties struct {
 }
 
 var (
-	cfgFile string
-	vendor  string
-	file    string
-	iptype  int
-	sources = "https://cloudip-sources-paova.ondigitalocean.app"
-	// ipsources = map[string]string{
-	//	"aws":    "https://ip-ranges.amazonaws.com/ip-ranges.json",
-	//	"google": "https://www.gstatic.com/ipranges/goog.json",
-	//	"azure":  "https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20220124.json",
-	// }
+	cfgFile  string
+	vendor   string
+	file     string
+	iptype   int
+	sources  = "https://cloudip-sources-paova.ondigitalocean.app"
 	vendors  Vendor
 	awsip    AWSIPRanges
 	googleip GoogleIPRanges
